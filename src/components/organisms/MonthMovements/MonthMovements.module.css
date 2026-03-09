@@ -1,0 +1,214 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  table-layout: fixed;
+}
+
+.th,
+.td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.th {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.th:nth-child(1) { width: 28%; }
+.th:nth-child(2) { width: 16%; }
+.th:nth-child(3) { width: 12%; }
+.th:nth-child(4) { width: 36%; }
+.th:nth-child(5) { width: 8%; }
+
+.row:nth-child(even) .td {
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.compactButton {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.editButton {
+  background-color: #16a34a;
+}
+
+.editButton:hover {
+  background-color: #15803d;
+}
+
+.deleteButton {
+  background-color: #b91c1c;
+}
+
+.deleteButton:hover {
+  background-color: #991b1b;
+}
+
+.editRow {
+  background-color: rgba(15, 23, 42, 0.9);
+}
+
+.iconButton {
+  padding: 0.4rem;
+  min-width: 2rem;
+}
+
+.iconButton span {
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.typeTag {
+  font-size: 0.7rem;
+  border-radius: 999px;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid #4b5563;
+}
+
+.typeIncome {
+  border-color: #16a34a;
+  color: #bbf7d0;
+}
+
+.typeExpense {
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+.typeConversion {
+  border-color: #0ea5e9;
+  color: #bae6fd;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  z-index: 40;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.modalCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.modalCloseBtn:hover {
+  color: #f1f5f9;
+  background-color: rgba(148, 163, 184, 0.2);
+}
+
+.modalBody {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.modalActions {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.editFormField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.editFormLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.editFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.receiveGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.secondaryButton {
+  background-color: #475569;
+  color: #f1f5f9;
+}
+
+.secondaryButton:hover {
+  background-color: #64748b;
+}
+

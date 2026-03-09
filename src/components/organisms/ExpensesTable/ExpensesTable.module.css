@@ -1,0 +1,25 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.th,
+.td {
+  padding: 0.25rem 0.35rem;
+  text-align: left;
+}
+
+.th {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.row:nth-child(even) .td {
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.right {
+  text-align: right;
+}
+

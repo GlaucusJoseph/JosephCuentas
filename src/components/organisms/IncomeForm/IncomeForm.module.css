@@ -1,0 +1,29 @@
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+@media (min-width: 900px) {
+  .form {
+    grid-template-columns: auto auto 1.5fr auto 1.5fr auto;
+    align-items: end;
+  }
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.inlineRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+

@@ -1,0 +1,58 @@
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.th,
+.td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.th {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.sectionTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 0.25rem;
+}
+
+.trendCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.trendUp {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.trendDown {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.trendFlat {
+  color: #9ca3af;
+}
+
+@media (max-width: 640px) {
+  .tableWrapper {
+    margin-bottom: 0.5rem;
+  }
+}
+

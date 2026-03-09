@@ -1,0 +1,22 @@
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.item {
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px dashed #374151;
+}
+
+.label {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.value {
+  font-weight: 600;
+}
+
