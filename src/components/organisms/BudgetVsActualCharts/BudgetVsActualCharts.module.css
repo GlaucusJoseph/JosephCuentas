@@ -11,6 +11,11 @@
   gap: 0.5rem;
 }
 
+.toolbar :global(button) {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+}
+
 .chartsRow {
   display: flex;
   flex-wrap: wrap;
@@ -23,67 +28,62 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  min-width: 200px;
+  gap: 0.35rem;
+  min-width: 220px;
 }
 
 .chartTitle {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #e5e7eb;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #cbd5e1;
 }
 
-.hoverBannerSlot {
-  width: 100%;
-  max-width: 260px;
-  min-height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.hoverBannerPlaceholder {
-  width: 100%;
-  min-height: 3rem;
-}
-
-.hoverBanner {
-  width: 100%;
-  padding: 0.35rem 0.5rem;
+.floatingTooltip {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  max-width: min(300px, calc(100vw - 1.5rem));
+  padding: 0.4rem 0.55rem;
   border-radius: 0.35rem;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(15, 23, 42, 0.96);
   border: 1px solid #334155;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  font-size: 0.72rem;
-  line-height: 1.25;
-}
-
-.hoverBannerLabel {
-  color: #e5e7eb;
-  font-weight: 600;
-}
-
-.hoverBannerAmount {
-  color: #a7f3d0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-size: 0.75rem;
+  line-height: 1.35;
   font-variant-numeric: tabular-nums;
 }
 
-.hoverBannerSub {
-  color: #9ca3af;
-  font-size: 0.65rem;
+.tooltipName {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.tooltipAmountNeutral {
+  color: #86efac;
+  font-weight: 600;
+}
+
+.tooltipAmountDynamic {
+  font-weight: 700;
+}
+
+.tooltipOriginal {
+  color: #cbd5e1;
+  font-weight: 500;
 }
 
 .svgWrap {
   position: relative;
-  width: 220px;
-  height: 220px;
+  width: 340px;
+  height: 340px;
 }
 
 .svgWrap svg {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .centerOverlay {
@@ -93,7 +93,7 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  padding: 0.5rem 0.75rem;
+  padding: 0.45rem 0.6rem;
 }
 
 .centerEmpty {
@@ -105,27 +105,30 @@
 .donutCenter {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.62rem;
-  line-height: 1.25;
+  gap: 0.22rem;
+  font-size: 0.72rem;
+  line-height: 1.28;
   text-align: center;
-  max-width: 7.5rem;
+  max-width: 9.25rem;
 }
 
 .donutCenterLine {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
+  gap: 0.06rem;
 }
 
 .donutCenterLabel {
-  color: #9ca3af;
-  font-weight: 500;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 600;
 }
 
 .donutCenterVal {
-  color: #e5e7eb;
+  font-size: 0.78rem;
+  color: #f8fafc;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 .sector {

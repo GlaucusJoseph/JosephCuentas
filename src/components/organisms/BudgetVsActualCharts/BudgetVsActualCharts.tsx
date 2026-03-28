@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useBudgetContext } from '../../../context/BudgetContext';
 import {
   ExpenseType,
@@ -12,7 +12,13 @@ import {
   sumExpenseTargetsCLP,
 } from '../../../domain/calculations';
 import { donutSegmentPath } from './donutGeometry';
-import { fillGreenSequence, GAP_COLOR, OVER_BUDGET_COLOR } from './chartColors';
+import {
+  fillActualSequence,
+  fillObjectiveSequence,
+  GAP_COLOR,
+  TOOLTIP_OVER_COLOR,
+  TOOLTIP_UNDER_COLOR,
+} from './chartColors';
 import { Button } from '../../atoms/Button/Button';
 import { NumberInput } from '../../atoms/NumberInput/NumberInput';
 import styles from './BudgetVsActualCharts.module.css';
@@ -24,11 +30,24 @@ const peso = (value: number): string =>
     maximumFractionDigits: 0,
   }).format(value);
 
-type HoverInfo = {
+type ObjectiveTooltip = {
+  kind: 'objective';
+  clientX: number;
+  clientY: number;
   label: string;
   amount: number;
-  sub?: string;
 };
+
+type ActualTooltip = {
+  kind: 'actual';
+  clientX: number;
+  clientY: number;
+  label: string;
+  actual: number;
+  target: number;
+};
+
+type ChartTooltipState = ObjectiveTooltip | ActualTooltip | null;
 
 function buildObjectiveScaledSegments(
   values: Record<ExpenseType, number>,
@@ -85,7 +104,7 @@ function buildObjectiveScaledSegments(
       startDeg,
       endDeg,
       amount: p.amount,
-      fill: fillGreenSequence(idx, parts.length),
+      fill: fillObjectiveSequence(idx, parts.length),
     });
     startDeg = endDeg;
   });
@@ -103,14 +122,13 @@ type ActualSeg = {
   fill: string;
   label: string;
   amount: number;
-  sub?: string;
+  target: number;
 };
 
 function buildActualScaledSegments(
   actual: Record<ExpenseType, number>,
   targets: Record<ExpenseType, number>,
   scaleMax: number,
-  greenCountEstimate: number,
 ): { segments: ActualSeg[]; gap: { startDeg: number; endDeg: number } | null } {
   const parts = EXPENSE_TYPES.map((type) => ({
     type,
@@ -127,77 +145,29 @@ function buildActualScaledSegments(
 
   let startDeg = 0;
   const segments: ActualSeg[] = [];
-  let greenIdx = 0;
 
   parts.forEach((p, partIdx) => {
     const A = p.amount;
     const T = Math.max(0, targets[p.type] ?? 0);
-    let maxSpan = (A / ref) * 360;
-    if (startDeg + maxSpan > 360) {
-      maxSpan = Math.max(0, 360 - startDeg);
+    let span = (A / ref) * 360;
+    if (startDeg + span > 360) {
+      span = Math.max(0, 360 - startDeg);
     }
-    if (maxSpan <= 0.0001) {
+    if (span <= 0.0001) {
       return;
     }
-    const endFull = startDeg + maxSpan;
-    const label = EXPENSE_TYPE_LABELS[p.type];
-
-    if (T === 0 && A > 0) {
-      segments.push({
-        key: `${p.type}-all-${partIdx}`,
-        type: p.type,
-        startDeg,
-        endDeg: endFull,
-        fill: OVER_BUDGET_COLOR,
-        label,
-        amount: A,
-        sub: 'Sin objetivo definido',
-      });
-      startDeg = endFull;
-      return;
-    }
-
-    if (A <= T) {
-      const fill = fillGreenSequence(greenIdx, greenCountEstimate);
-      greenIdx += 1;
-      segments.push({
-        key: `${p.type}-ok-${partIdx}`,
-        type: p.type,
-        startDeg,
-        endDeg: endFull,
-        fill,
-        label,
-        amount: A,
-      });
-      startDeg = endFull;
-      return;
-    }
-
-    const withinSpan = maxSpan * (T / A);
-    const mid = startDeg + withinSpan;
-    const fillW = fillGreenSequence(greenIdx, greenCountEstimate);
-    greenIdx += 1;
+    const endDeg = startDeg + span;
     segments.push({
-      key: `${p.type}-in-${partIdx}`,
+      key: `act-${p.type}-${partIdx}`,
       type: p.type,
       startDeg,
-      endDeg: mid,
-      fill: fillW,
-      label,
-      amount: T,
-      sub: 'Hasta objetivo',
+      endDeg,
+      fill: fillActualSequence(partIdx, parts.length),
+      label: EXPENSE_TYPE_LABELS[p.type],
+      amount: A,
+      target: T,
     });
-    segments.push({
-      key: `${p.type}-ex-${partIdx}`,
-      type: p.type,
-      startDeg: mid,
-      endDeg: endFull,
-      fill: OVER_BUDGET_COLOR,
-      label,
-      amount: A - T,
-      sub: 'Exceso sobre objetivo',
-    });
-    startDeg = endFull;
+    startDeg = endDeg;
   });
 
   const gap =
@@ -207,28 +177,26 @@ function buildActualScaledSegments(
 
 function DonutCenterStats({
   presupuesto,
-  gastoEstimado,
-  ahorroEsperado,
+  gasto,
+  ahorro,
 }: {
   presupuesto: number;
-  gastoEstimado: number;
-  ahorroEsperado: number;
+  gasto: number;
+  ahorro: number;
 }) {
   return (
     <div className={styles.donutCenter}>
       <div className={styles.donutCenterLine}>
-        <span className={styles.donutCenterLabel}>
-          Presupuesto (valor inicial)
-        </span>
+        <span className={styles.donutCenterLabel}>Valor inicial</span>
         <span className={styles.donutCenterVal}>{peso(presupuesto)}</span>
       </div>
       <div className={styles.donutCenterLine}>
-        <span className={styles.donutCenterLabel}>Gasto estimado</span>
-        <span className={styles.donutCenterVal}>{peso(gastoEstimado)}</span>
+        <span className={styles.donutCenterLabel}>Gasto</span>
+        <span className={styles.donutCenterVal}>{peso(gasto)}</span>
       </div>
       <div className={styles.donutCenterLine}>
-        <span className={styles.donutCenterLabel}>Ahorro esperado</span>
-        <span className={styles.donutCenterVal}>{peso(ahorroEsperado)}</span>
+        <span className={styles.donutCenterLabel}>Ahorro</span>
+        <span className={styles.donutCenterVal}>{peso(ahorro)}</span>
       </div>
     </div>
   );
@@ -245,8 +213,8 @@ function ObjectiveDonutChart({
   scaleMax: number;
   centerProps: {
     presupuesto: number;
-    gastoEstimado: number;
-    ahorroEsperado: number;
+    gasto: number;
+    ahorro: number;
   };
 }) {
   const cx = 110;
@@ -254,32 +222,25 @@ function ObjectiveDonutChart({
   const rOuter = 88;
   const rInner = 52;
 
-  const [hover, setHover] = useState<HoverInfo | null>(null);
+  const [tip, setTip] = useState<ChartTooltipState>(null);
 
   const { segments, gap } = useMemo(
     () => buildObjectiveScaledSegments(values, scaleMax),
     [values, scaleMax],
   );
 
+  const moveTip = useCallback((e: React.MouseEvent) => {
+    setTip((prev) =>
+      prev ? { ...prev, clientX: e.clientX, clientY: e.clientY } : null,
+    );
+  }, []);
+
   return (
     <div className={styles.chartBlock}>
       <div className={styles.chartTitle}>{title}</div>
-      <div className={styles.hoverBannerSlot}>
-        {hover ? (
-          <div className={styles.hoverBanner} aria-live="polite">
-            <span className={styles.hoverBannerLabel}>{hover.label}</span>
-            <span className={styles.hoverBannerAmount}>{peso(hover.amount)}</span>
-            {hover.sub ? (
-              <span className={styles.hoverBannerSub}>{hover.sub}</span>
-            ) : null}
-          </div>
-        ) : (
-          <div className={styles.hoverBannerPlaceholder} aria-hidden />
-        )}
-      </div>
       <div
         className={styles.svgWrap}
-        onMouseLeave={() => setHover(null)}
+        onMouseLeave={() => setTip(null)}
       >
         <svg viewBox="0 0 220 220" width="220" height="220" aria-hidden>
           {gap && (
@@ -299,12 +260,16 @@ function ObjectiveDonutChart({
               stroke="#020617"
               strokeWidth="1"
               className={styles.sector}
-              onMouseEnter={() =>
-                setHover({
+              onMouseEnter={(e) =>
+                setTip({
+                  kind: 'objective',
+                  clientX: e.clientX,
+                  clientY: e.clientY,
                   label: EXPENSE_TYPE_LABELS[s.type],
                   amount: s.amount,
                 })
               }
+              onMouseMove={moveTip}
             />
           ))}
         </svg>
@@ -312,6 +277,19 @@ function ObjectiveDonutChart({
           <DonutCenterStats {...centerProps} />
         </div>
       </div>
+      {tip && tip.kind === 'objective' ? (
+        <div
+          className={styles.floatingTooltip}
+          style={{
+            left: tip.clientX + 12,
+            top: tip.clientY + 12,
+          }}
+          role="tooltip"
+        >
+          <span className={styles.tooltipName}>{tip.label}</span>{' '}
+          <span className={styles.tooltipAmountNeutral}>{peso(tip.amount)}</span>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -329,8 +307,8 @@ function ActualDonutChart({
   scaleMax: number;
   centerProps: {
     presupuesto: number;
-    gastoEstimado: number;
-    ahorroEsperado: number;
+    gasto: number;
+    ahorro: number;
   };
 }) {
   const cx = 110;
@@ -338,38 +316,25 @@ function ActualDonutChart({
   const rOuter = 88;
   const rInner = 52;
 
-  const [hover, setHover] = useState<HoverInfo | null>(null);
+  const [tip, setTip] = useState<ChartTooltipState>(null);
 
   const { segments, gap } = useMemo(
-    () =>
-      buildActualScaledSegments(
-        actual,
-        targets,
-        scaleMax,
-        EXPENSE_TYPES.length,
-      ),
+    () => buildActualScaledSegments(actual, targets, scaleMax),
     [actual, targets, scaleMax],
   );
+
+  const moveTip = useCallback((e: React.MouseEvent) => {
+    setTip((prev) =>
+      prev ? { ...prev, clientX: e.clientX, clientY: e.clientY } : null,
+    );
+  }, []);
 
   return (
     <div className={styles.chartBlock}>
       <div className={styles.chartTitle}>{title}</div>
-      <div className={styles.hoverBannerSlot}>
-        {hover ? (
-          <div className={styles.hoverBanner} aria-live="polite">
-            <span className={styles.hoverBannerLabel}>{hover.label}</span>
-            <span className={styles.hoverBannerAmount}>{peso(hover.amount)}</span>
-            {hover.sub ? (
-              <span className={styles.hoverBannerSub}>{hover.sub}</span>
-            ) : null}
-          </div>
-        ) : (
-          <div className={styles.hoverBannerPlaceholder} aria-hidden />
-        )}
-      </div>
       <div
         className={styles.svgWrap}
-        onMouseLeave={() => setHover(null)}
+        onMouseLeave={() => setTip(null)}
       >
         <svg viewBox="0 0 220 220" width="220" height="220" aria-hidden>
           {gap && (
@@ -389,13 +354,17 @@ function ActualDonutChart({
               stroke="#020617"
               strokeWidth="1"
               className={styles.sector}
-              onMouseEnter={() =>
-                setHover({
+              onMouseEnter={(e) =>
+                setTip({
+                  kind: 'actual',
+                  clientX: e.clientX,
+                  clientY: e.clientY,
                   label: s.label,
-                  amount: s.amount,
-                  sub: s.sub,
+                  actual: s.amount,
+                  target: s.target,
                 })
               }
+              onMouseMove={moveTip}
             />
           ))}
         </svg>
@@ -403,6 +372,36 @@ function ActualDonutChart({
           <DonutCenterStats {...centerProps} />
         </div>
       </div>
+      {tip && tip.kind === 'actual' ? (
+        <div
+          className={styles.floatingTooltip}
+          style={{
+            left: tip.clientX + 12,
+            top: tip.clientY + 12,
+          }}
+          role="tooltip"
+        >
+          <span className={styles.tooltipName}>{tip.label}</span>{' '}
+          <span
+            className={styles.tooltipAmountDynamic}
+            style={{
+              color:
+                (tip.target > 0 && tip.actual > tip.target) ||
+                (tip.target === 0 && tip.actual > 0)
+                  ? TOOLTIP_OVER_COLOR
+                  : TOOLTIP_UNDER_COLOR,
+            }}
+          >
+            {peso(tip.actual)}
+          </span>
+          {tip.actual > tip.target && tip.target > 0 ? (
+            <>
+              {' '}
+              <span className={styles.tooltipOriginal}>({peso(tip.target)})</span>
+            </>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -441,13 +440,22 @@ export const BudgetVsActualCharts: React.FC<Props> = ({ monthKey }) => {
   );
 
   const valorInicial = month?.initialBudgetCLP ?? 0;
-  const gastoEstimado = useMemo(() => sumExpenseTargetsCLP(targets), [targets]);
-  const ahorroEsperado = valorInicial - gastoEstimado;
+  const gastoObjetivo = useMemo(() => sumExpenseTargetsCLP(targets), [targets]);
+  const totalActualCLP = useMemo(
+    () => EXPENSE_TYPES.reduce((s, t) => s + actual[t], 0),
+    [actual],
+  );
 
-  const centerProps = {
+  const objectiveCenter = {
     presupuesto: valorInicial,
-    gastoEstimado,
-    ahorroEsperado,
+    gasto: gastoObjetivo,
+    ahorro: valorInicial - gastoObjetivo,
+  };
+
+  const actualCenter = {
+    presupuesto: valorInicial,
+    gasto: totalActualCLP,
+    ahorro: valorInicial - totalActualCLP,
   };
 
   const openModal = () => {
@@ -495,14 +503,14 @@ export const BudgetVsActualCharts: React.FC<Props> = ({ monthKey }) => {
           values={targets}
           title="Objetivo"
           scaleMax={valorInicial}
-          centerProps={centerProps}
+          centerProps={objectiveCenter}
         />
         <ActualDonutChart
           actual={actual}
           targets={targets}
           title="Actual"
           scaleMax={valorInicial}
-          centerProps={centerProps}
+          centerProps={actualCenter}
         />
       </div>
 

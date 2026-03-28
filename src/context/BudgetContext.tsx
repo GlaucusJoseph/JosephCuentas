@@ -33,12 +33,7 @@ import {
   updateConversionInMonth,
   updateBudgetPlanningForMonth,
 } from '../services/monthRepository';
-import {
-  exportState,
-  importState,
-  loadAppState,
-  saveAppState,
-} from '../services/storage';
+import { loadAppState, saveAppState } from '../services/storage';
 
 interface AddExpenseInput {
   date: string;
@@ -103,8 +98,6 @@ interface BudgetContextValue {
     targets: Record<ExpenseType, number>,
     initialBudgetCLP: number,
   ) => void;
-  exportStateJson: () => string;
-  importStateJson: (json: string) => void;
 }
 
 const BudgetContext = createContext<BudgetContextValue | undefined>(undefined);
@@ -203,13 +196,6 @@ export const BudgetProvider: React.FC<React.PropsWithChildren> = ({ children }) 
           0,
       }),
     );
-  };
-
-  const exportStateJson = () => exportState(state);
-
-  const importStateJson = (json: string) => {
-    const next = importState(json);
-    setState(next);
   };
 
   const value: BudgetContextValue = {
@@ -319,8 +305,6 @@ export const BudgetProvider: React.FC<React.PropsWithChildren> = ({ children }) 
         updateBudgetPlanningForMonth(prev, monthKey, targets, initialBudgetCLP),
       );
     },
-    exportStateJson,
-    importStateJson,
   };
 
   return (

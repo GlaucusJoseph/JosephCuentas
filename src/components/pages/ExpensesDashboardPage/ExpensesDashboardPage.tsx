@@ -1,14 +1,12 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import { useBudgetContext } from "../../../context/BudgetContext";
-import { useMonthlyBudget } from "../../../hooks/useMonthlyBudget";
 import { buildMonthSummary } from "../../../domain/calculations";
 import { getMonthKey } from "../../../domain/models";
-import { Card } from "../../atoms/Card/Card";
-import { Button } from "../../atoms/Button/Button";
+import { formatMonthTitleEs } from "../../../domain/dateLabels";
 import { MonthlySummary } from "../../organisms/MonthlySummary/MonthlySummary";
-import { MonthlyComparison } from "../../organisms/MonthlyComparison/MonthlyComparison";
 import { MonthMovements } from "../../organisms/MonthMovements/MonthMovements";
 import { BudgetVsActualCharts } from "../../organisms/BudgetVsActualCharts/BudgetVsActualCharts";
+import { MonthVsPreviousKpis } from "../../organisms/MonthVsPreviousKpis/MonthVsPreviousKpis";
 import styles from "./ExpensesDashboardPage.module.css";
 
 const peso = (value: number): string =>
@@ -19,10 +17,7 @@ const peso = (value: number): string =>
   }).format(value);
 
 export const ExpensesDashboardPage: React.FC = () => {
-  const { state, selectMonth, exportStateJson, importStateJson } =
-    useBudgetContext();
-  const { comparisons } = useMonthlyBudget();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { state, selectMonth } = useBudgetContext();
 
   const monthsSorted = useMemo(
     () =>
@@ -33,7 +28,6 @@ export const ExpensesDashboardPage: React.FC = () => {
     [state.months],
   );
 
-  /** Mes cuyo presupuesto vs real se muestra: el seleccionado en el acordeón (o el último mes cargado). */
   const budgetMonthKey = useMemo(() => {
     if (monthsSorted.length === 0) return "";
     const sel = state.selectedMonthKey;
@@ -45,61 +39,23 @@ export const ExpensesDashboardPage: React.FC = () => {
     return getMonthKey(last.year, last.month);
   }, [monthsSorted, state.selectedMonthKey]);
 
-  const handleExport = () => {
-    const data = exportStateJson();
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "gastos-personales.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImportChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    importStateJson(text);
-    event.target.value = "";
-  };
-
   return (
     <div className={styles.page}>
-      <header>
+      <header className={styles.pageHeader}>
         <h1 className={styles.title}>Gastos personales</h1>
-        <p className={styles.subtitle}>
-          Lista de meses desplegables, con ingresos, gastos y resúmenes en CLP.
-        </p>
-        <div className={styles.toolbar}>
-          <Button type="button" onClick={handleExport}>
-            Exportar JSON
-          </Button>
-          <Button type="button" onClick={handleImportClick}>
-            Importar JSON
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json"
-            style={{ display: "none" }}
-            onChange={handleImportChange}
-          />
-        </div>
       </header>
 
       {budgetMonthKey ? (
-        <div className={styles.mainBudgetSection}>
-          <Card title="Presupuesto vs real">
+        <>
+          <section className={styles.budgetSection} aria-labelledby="budget-heading">
+            <h2 id="budget-heading" className={styles.sectionHeading}>
+              Presupuesto vs real
+            </h2>
             <BudgetVsActualCharts monthKey={budgetMonthKey} />
-          </Card>
-        </div>
+          </section>
+
+          <MonthVsPreviousKpis monthKey={budgetMonthKey} />
+        </>
       ) : null}
 
       <div className={styles.accordionList}>
@@ -109,6 +65,7 @@ export const ExpensesDashboardPage: React.FC = () => {
           const totalExpensesCLP = summary.expensesByCurrency.CLP;
           const totalIncomesCLP = summary.incomesByCurrency.CLP;
           const netCLP = summary.netByCurrency.CLP;
+          const monthLabel = formatMonthTitleEs(month.month, month.year);
 
           return (
             <details
@@ -123,9 +80,7 @@ export const ExpensesDashboardPage: React.FC = () => {
               }}
             >
               <summary className={styles.accordionHeader}>
-                <span className={styles.accordionHeaderMain}>
-                  {month.month.toString().padStart(2, "0")}/{month.year}
-                </span>
+                <span className={styles.accordionHeaderMain}>{monthLabel}</span>
                 <span className={styles.accordionHeaderMeta}>
                   Ing CLP: {peso(totalIncomesCLP)} · Gas CLP:{" "}
                   {peso(totalExpensesCLP)} · Neto CLP: {peso(netCLP)}
@@ -133,26 +88,24 @@ export const ExpensesDashboardPage: React.FC = () => {
               </summary>
 
               <div className={styles.accordionBody}>
-                <Card title="Movimientos del mes">
-                  <MonthMovements monthKey={key} />
-                </Card>
+                <section className={styles.monthPanel}>
+                  <h3 className={styles.monthPanelTitle}>Resumen del mes</h3>
+                  <div className={styles.monthPanelBody}>
+                    <MonthlySummary monthKey={key} />
+                  </div>
+                </section>
 
-                <Card title="Resumen del mes">
-                  <MonthlySummary monthKey={key} />
-                </Card>
+                <section className={styles.monthPanel}>
+                  <h3 className={styles.monthPanelTitle}>Movimientos del mes</h3>
+                  <div className={styles.monthPanelBody}>
+                    <MonthMovements monthKey={key} />
+                  </div>
+                </section>
               </div>
             </details>
           );
         })}
       </div>
-
-      <Card
-        title="Comparación global mes a mes"
-        subtitle="Tendencias generales de gastos entre meses (en CLP)"
-      >
-        <MonthlyComparison />
-      </Card>
-
     </div>
   );
 };
