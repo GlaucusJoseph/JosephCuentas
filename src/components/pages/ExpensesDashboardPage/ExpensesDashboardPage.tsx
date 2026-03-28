@@ -8,6 +8,7 @@ import { Button } from "../../atoms/Button/Button";
 import { MonthlySummary } from "../../organisms/MonthlySummary/MonthlySummary";
 import { MonthlyComparison } from "../../organisms/MonthlyComparison/MonthlyComparison";
 import { MonthMovements } from "../../organisms/MonthMovements/MonthMovements";
+import { BudgetVsActualCharts } from "../../organisms/BudgetVsActualCharts/BudgetVsActualCharts";
 import styles from "./ExpensesDashboardPage.module.css";
 
 const peso = (value: number): string =>
@@ -31,6 +32,18 @@ export const ExpensesDashboardPage: React.FC = () => {
       }),
     [state.months],
   );
+
+  /** Mes cuyo presupuesto vs real se muestra: el seleccionado en el acordeón (o el último mes cargado). */
+  const budgetMonthKey = useMemo(() => {
+    if (monthsSorted.length === 0) return "";
+    const sel = state.selectedMonthKey;
+    const hasSel = monthsSorted.some(
+      (m) => getMonthKey(m.year, m.month) === sel,
+    );
+    if (hasSel) return sel;
+    const last = monthsSorted[monthsSorted.length - 1];
+    return getMonthKey(last.year, last.month);
+  }, [monthsSorted, state.selectedMonthKey]);
 
   const handleExport = () => {
     const data = exportStateJson();
@@ -80,6 +93,14 @@ export const ExpensesDashboardPage: React.FC = () => {
           />
         </div>
       </header>
+
+      {budgetMonthKey ? (
+        <div className={styles.mainBudgetSection}>
+          <Card title="Presupuesto vs real">
+            <BudgetVsActualCharts monthKey={budgetMonthKey} />
+          </Card>
+        </div>
+      ) : null}
 
       <div className={styles.accordionList}>
         {monthsSorted.map((month) => {

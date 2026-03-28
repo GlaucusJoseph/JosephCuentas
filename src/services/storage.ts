@@ -1,6 +1,24 @@
-import type { BudgetState } from '../domain/models';
+import {
+  mergeExpenseTargetsCLP,
+  type BudgetState,
+  type MonthData,
+} from '../domain/models';
 
 const STORAGE_KEY = 'personal-expenses-v1';
+
+function normalizeMonth(m: MonthData): MonthData {
+  return {
+    ...m,
+    expenseTargetsCLP: mergeExpenseTargetsCLP(m.expenseTargetsCLP),
+  };
+}
+
+function normalizeBudgetState(parsed: BudgetState): BudgetState {
+  return {
+    ...parsed,
+    months: parsed.months.map((m) => normalizeMonth(m)),
+  };
+}
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -17,7 +35,7 @@ export function loadAppState(): BudgetState | undefined {
     const parsed = JSON.parse(raw) as BudgetState;
 
     // Normalizar meses antiguos que no tengan ingresos / conversions / balances nuevos definidos.
-    return {
+    const withBasics: BudgetState = {
       ...parsed,
       months: parsed.months.map((m) => ({
         ...m,
@@ -36,6 +54,7 @@ export function loadAppState(): BudgetState | undefined {
           },
       })),
     };
+    return normalizeBudgetState(withBasics);
   } catch {
     return undefined;
   }
@@ -57,7 +76,7 @@ export function exportState(state: BudgetState): string {
 
 export function importState(json: string): BudgetState {
   const parsed = JSON.parse(json) as BudgetState;
-  return {
+  const withBasics: BudgetState = {
     ...parsed,
     months: parsed.months.map((m) => ({
       ...m,
@@ -76,5 +95,6 @@ export function importState(json: string): BudgetState {
         },
     })),
   };
+  return normalizeBudgetState(withBasics);
 }
 

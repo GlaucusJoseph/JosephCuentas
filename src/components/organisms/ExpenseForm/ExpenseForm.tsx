@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Currency, ExpenseType } from '../../../domain/models';
+import {
+  Currency,
+  ExpenseType,
+  EXPENSE_TYPES,
+  EXPENSE_TYPE_LABELS,
+} from '../../../domain/models';
 import { useBudgetContext } from '../../../context/BudgetContext';
 import { Button } from '../../atoms/Button/Button';
 import { TextInput } from '../../atoms/TextInput/TextInput';
@@ -68,11 +73,11 @@ export const ExpenseForm: React.FC<Props> = ({ monthKey }) => {
             value={type}
             onChange={(e) => setType(e.target.value as ExpenseType)}
           >
-            <option value="MERCADO">Mercado</option>
-            <option value="ARRIENDO">Arriendo</option>
-            <option value="SERVICIOS">Servicios</option>
-            <option value="TRANSPORTE">Transporte</option>
-            <option value="OTROS">Otros</option>
+            {EXPENSE_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {EXPENSE_TYPE_LABELS[t]}
+              </option>
+            ))}
           </Select>
         </LabeledField>
       </div>

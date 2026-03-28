@@ -16,6 +16,7 @@ import {
   getMonthKey,
   Conversion,
   MoneyByCurrency,
+  mergeExpenseTargetsCLP,
 } from '../domain/models';
 import { calculateAmountInCLP } from '../domain/calculations';
 import {
@@ -30,6 +31,7 @@ import {
   addConversionToMonth,
   removeConversionFromMonth,
   updateConversionInMonth,
+  updateBudgetPlanningForMonth,
 } from '../services/monthRepository';
 import {
   exportState,
@@ -96,6 +98,11 @@ interface BudgetContextValue {
   ) => void;
   updateBalances: (input: UpdateBalancesInput) => void;
   createMonthIfNotExists: (year: number, month: number) => void;
+  updateBudgetPlanning: (
+    monthKey: string,
+    targets: Record<ExpenseType, number>,
+    initialBudgetCLP: number,
+  ) => void;
   exportStateJson: () => string;
   importStateJson: (json: string) => void;
 }
@@ -121,6 +128,8 @@ function createInitialState(): BudgetState {
     expenses: [],
     incomes: [],
     conversions: [],
+    expenseTargetsCLP: mergeExpenseTargetsCLP(undefined),
+    initialBudgetCLP: 0,
     // legacy
     initialBalances: { CLP: 0, USD: 0, ARS: 0 },
     currentBalances: { CLP: 0, USD: 0, ARS: 0 },
@@ -305,6 +314,11 @@ export const BudgetProvider: React.FC<React.PropsWithChildren> = ({ children }) 
     },
     updateBalances,
     createMonthIfNotExists,
+    updateBudgetPlanning: (monthKey, targets, initialBudgetCLP) => {
+      setState((prev) =>
+        updateBudgetPlanningForMonth(prev, monthKey, targets, initialBudgetCLP),
+      );
+    },
     exportStateJson,
     importStateJson,
   };

@@ -1,11 +1,13 @@
 import {
   BudgetState,
   Expense,
+  ExpenseType,
   Income,
   MonthData,
   MoneyByCurrency,
   Conversion,
   getMonthKey,
+  mergeExpenseTargetsCLP,
 } from '../domain/models';
 
 function cloneState(state: BudgetState): BudgetState {
@@ -34,6 +36,7 @@ function cloneState(state: BudgetState): BudgetState {
       currentBalances: m.currentBalances
         ? { ...m.currentBalances }
         : zeroBalances,
+      expenseTargetsCLP: mergeExpenseTargetsCLP(m.expenseTargetsCLP),
     })),
   };
 }
@@ -243,6 +246,8 @@ export function ensureMonth(
     expenses: [],
     incomes: [],
     conversions: [],
+    expenseTargetsCLP: mergeExpenseTargetsCLP(undefined),
+    initialBudgetCLP: 0,
     // legacy
     initialBalances: zeroBalances,
     currentBalances: zeroBalances,
@@ -251,5 +256,25 @@ export function ensureMonth(
   const next = cloneState(state);
   next.months.push(emptyMonth);
   return next;
+}
+
+export function updateBudgetPlanningForMonth(
+  state: BudgetState,
+  key: string,
+  targets: Record<ExpenseType, number>,
+  initialBudgetCLP: number,
+): BudgetState {
+  const existing = getMonth(state, key);
+  if (!existing) return state;
+  const safeBase =
+    Number.isFinite(initialBudgetCLP) && initialBudgetCLP >= 0
+      ? initialBudgetCLP
+      : 0;
+  const updated: MonthData = {
+    ...existing,
+    expenseTargetsCLP: mergeExpenseTargetsCLP(targets),
+    initialBudgetCLP: safeBase,
+  };
+  return upsertMonth(state, updated);
 }
 

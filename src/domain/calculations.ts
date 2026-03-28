@@ -6,6 +6,8 @@ import {
   MoneyByCurrency,
   Conversion,
   MonthData,
+  EXPENSE_TYPES,
+  emptyExpenseTargetsCLP,
 } from './models';
 
 export interface AmountInput {
@@ -90,24 +92,68 @@ export function getNetConversions(conversions: Conversion[]): MoneyByCurrency {
   return net;
 }
 
+export function normalizeLegacyExpenseType(type: string): ExpenseType {
+  if (type === 'SERVICIOS') return 'EXPENSAS';
+  if ((EXPENSE_TYPES as readonly string[]).includes(type)) {
+    return type as ExpenseType;
+  }
+  return 'OTROS';
+}
+
+function createEmptyTotalsByTypeByCurrency(): Record<
+  ExpenseType,
+  MoneyByCurrency
+> {
+  const baseMoney = emptyMoney();
+  const totals = {} as Record<ExpenseType, MoneyByCurrency>;
+  for (const t of EXPENSE_TYPES) {
+    totals[t] = { ...baseMoney };
+  }
+  return totals;
+}
+
 export function getTotalsByTypeByCurrency(
   expenses: Expense[],
 ): Record<ExpenseType, MoneyByCurrency> {
-  const baseMoney = emptyMoney();
-  const totals: Record<ExpenseType, MoneyByCurrency> = {
-    MERCADO: { ...baseMoney },
-    ARRIENDO: { ...baseMoney },
-    SERVICIOS: { ...baseMoney },
-    TRANSPORTE: { ...baseMoney },
-    OTROS: { ...baseMoney },
-  };
+  const totals = createEmptyTotalsByTypeByCurrency();
 
   for (const e of expenses) {
-    const bucket = totals[e.type];
+    const type = normalizeLegacyExpenseType(String(e.type));
+    const bucket = totals[type];
     bucket[e.currencyOriginal] += e.amountOriginal;
   }
 
   return totals;
+}
+
+/**
+ * Suma gastos reales por categoría en CLP (amountInCLP o calculateAmountInCLP).
+ * Usar con los gastos (`expenses`) del mes correspondiente.
+ */
+export function getActualExpenseTotalsByTypeCLP(
+  expenses: Expense[],
+): Record<ExpenseType, number> {
+  const totals = emptyExpenseTargetsCLP();
+  for (const e of expenses) {
+    const type = normalizeLegacyExpenseType(String(e.type));
+    const clp = e.amountInCLP ?? calculateAmountInCLP(e);
+    totals[type] += Math.max(0, clp);
+  }
+  return totals;
+}
+
+
+/**
+ * Suma de metas por categoría (gasto estimado total del mes en CLP).
+ */
+export function sumExpenseTargetsCLP(
+  targets: Record<ExpenseType, number>,
+): number {
+  let s = 0;
+  for (const type of EXPENSE_TYPES) {
+    s += Math.max(0, targets[type]);
+  }
+  return s;
 }
 
 export interface MonthSummary {
@@ -184,12 +230,9 @@ export function buildMonthSummary(month: MonthData): MonthSummary {
 
 export interface MonthComparison {
   monthKey: string;
-  netByCurrency: MoneyByCurrency;
-  diffPrevNetByCurrency: {
-    CLP: number | null;
-    USD: number | null;
-    ARS: number | null;
-  };
+  incomesByCurrency: MoneyByCurrency;
+  expensesByCurrency: MoneyByCurrency;
+  endingBalancesByCurrency: MoneyByCurrency;
 }
 
 export function buildMonthlyComparisons(months: MonthData[]): MonthComparison[] {
@@ -204,28 +247,13 @@ export function buildMonthlyComparisons(months: MonthData[]): MonthComparison[] 
 
   for (let i = 0; i < sorted.length; i += 1) {
     const current = sorted[i];
-    const currentSummary = buildMonthSummary(current);
-    const prev = sorted[i - 1];
-
-    const netByCurrency = currentSummary.netByCurrency;
-    const diffPrevNetByCurrency = {
-      CLP: null as number | null,
-      USD: null as number | null,
-      ARS: null as number | null,
-    };
-
-    if (prev) {
-      const prevSummary = buildMonthSummary(prev);
-      (['CLP', 'USD', 'ARS'] as const).forEach((c) => {
-        diffPrevNetByCurrency[c] =
-          netByCurrency[c] - prevSummary.netByCurrency[c];
-      });
-    }
+    const summary = buildMonthSummary(current);
 
     result.push({
       monthKey: `${current.year}-${String(current.month).padStart(2, '0')}`,
-      netByCurrency,
-      diffPrevNetByCurrency,
+      incomesByCurrency: summary.incomesByCurrency,
+      expensesByCurrency: summary.expensesByCurrency,
+      endingBalancesByCurrency: summary.endingBalances,
     });
   }
 

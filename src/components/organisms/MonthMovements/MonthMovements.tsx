@@ -7,7 +7,10 @@ import {
   Currency,
   Conversion,
   getMonthKey,
+  EXPENSE_TYPES,
+  EXPENSE_TYPE_LABELS,
 } from '../../../domain/models';
+import { normalizeLegacyExpenseType } from '../../../domain/calculations';
 import { useBudgetContext } from '../../../context/BudgetContext';
 import { Button } from '../../atoms/Button/Button';
 import { TextInput } from '../../atoms/TextInput/TextInput';
@@ -120,7 +123,9 @@ export const MonthMovements: React.FC<Props> = ({ monthKey }) => {
     const expenseRows: MovementRow[] = month.expenses.map((e: Expense) => ({
       kind: 'EXPENSE',
       id: e.id,
-      label: `Gasto · ${e.type}`,
+      label: `Gasto · ${
+        EXPENSE_TYPE_LABELS[normalizeLegacyExpenseType(String(e.type))]
+      }`,
       amountOriginal: e.amountOriginal,
       currencyOriginal: e.currencyOriginal,
       note: e.note,
@@ -175,7 +180,9 @@ export const MonthMovements: React.FC<Props> = ({ monthKey }) => {
       const source = month?.incomes?.find((i) => i.id === row.id);
       setDate(source?.date ?? new Date().toISOString().slice(0, 10));
     } else if (row.kind === 'EXPENSE') {
-      if (row.expenseType) setExpenseType(row.expenseType);
+      if (row.expenseType) {
+        setExpenseType(normalizeLegacyExpenseType(String(row.expenseType)));
+      }
       setAmount(row.amountOriginal);
       setCurrency(row.currencyOriginal);
       const source = month?.expenses.find((e) => e.id === row.id);
@@ -385,11 +392,11 @@ export const MonthMovements: React.FC<Props> = ({ monthKey }) => {
                 value={expenseType}
                 onChange={(e) => setExpenseType(e.target.value as ExpenseType)}
               >
-                <option value="MERCADO">Mercado</option>
-                <option value="ARRIENDO">Arriendo</option>
-                <option value="SERVICIOS">Servicios</option>
-                <option value="TRANSPORTE">Transporte</option>
-                <option value="OTROS">Otros</option>
+                {EXPENSE_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {EXPENSE_TYPE_LABELS[t]}
+                  </option>
+                ))}
               </Select>
             </div>
           )}

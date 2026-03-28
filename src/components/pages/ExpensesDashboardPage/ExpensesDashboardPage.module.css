@@ -23,6 +23,10 @@
   margin-bottom: 1.25rem;
 }
 
+.mainBudgetSection {
+  margin-bottom: 1.5rem;
+}
+
 .accordionList {
   display: flex;
   flex-direction: column;

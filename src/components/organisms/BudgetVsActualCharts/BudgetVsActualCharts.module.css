@@ -1,0 +1,280 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chartsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.chartBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.chartTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.hoverBannerSlot {
+  width: 100%;
+  max-width: 260px;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hoverBannerPlaceholder {
+  width: 100%;
+  min-height: 3rem;
+}
+
+.hoverBanner {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.35rem;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.hoverBannerLabel {
+  color: #e5e7eb;
+  font-weight: 600;
+}
+
+.hoverBannerAmount {
+  color: #a7f3d0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hoverBannerSub {
+  color: #9ca3af;
+  font-size: 0.65rem;
+}
+
+.svgWrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+.svgWrap svg {
+  display: block;
+}
+
+.centerOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  padding: 0.5rem 0.75rem;
+}
+
+.centerEmpty {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.donutCenter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  text-align: center;
+  max-width: 7.5rem;
+}
+
+.donutCenterLine {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.donutCenterLabel {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.donutCenterVal {
+  color: #e5e7eb;
+  font-variant-numeric: tabular-nums;
+}
+
+.sector {
+  cursor: crosshair;
+  transition: filter 0.12s ease, opacity 0.12s ease;
+}
+
+.sector:hover {
+  filter: brightness(1.15);
+  opacity: 0.95;
+}
+
+.sectorGap {
+  pointer-events: none;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  max-width: 280px;
+  width: 100%;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.swatch {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  flex: 1;
+  color: #d1d5db;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendVal {
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 0.75rem;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.modalCloseBtn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.modalCloseBtn:hover {
+  color: #e5e7eb;
+}
+
+.modalBody {
+  padding: 1rem;
+  overflow: auto;
+}
+
+.targetsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.targetRow {
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.targetRow label {
+  color: #d1d5db;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #1f2937;
+}
+
+.valorInicialRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.valorInicialLabel {
+  font-size: 0.8rem;
+  color: #d1d5db;
+}
+
+.modalHint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0 0 0.5rem;
+}
+
